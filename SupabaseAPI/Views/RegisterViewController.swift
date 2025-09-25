@@ -84,7 +84,7 @@ class RegisterViewController: UIViewController {
     
     private func setupNavigationBar() {
         navigationItem.title = "Register"
-        navigationController!.navigationBar.isHidden = false
+        navigationController?.navigationBar.isHidden = false
     }
     
     @objc private func signUpButtonTapped() {

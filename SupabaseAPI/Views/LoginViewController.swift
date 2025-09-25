@@ -76,6 +76,7 @@ class LoginViewController: UIViewController {
         
         // MARK: Sign Up Label
         signUpLabel = UILabel()
+        signUpLabel.translatesAutoresizingMaskIntoConstraints = false
         signUpLabel.text = "Don't have an account?"
 
         // MARK: Sign Up Button
@@ -120,7 +121,7 @@ class LoginViewController: UIViewController {
     
     private func setupNavigationBar() {
         navigationItem.title = "Login"
-        navigationController!.navigationBar.isHidden = true
+        navigationController?.navigationBar.isHidden = true
     }
     
     @objc private func signInButtonTapped() {
