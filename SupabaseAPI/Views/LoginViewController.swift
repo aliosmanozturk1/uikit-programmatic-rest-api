@@ -135,6 +135,7 @@ class LoginViewController: UIViewController {
 
 }
 
+@available(iOS 17.0, *)
 #Preview {
     LoginViewController()
 }

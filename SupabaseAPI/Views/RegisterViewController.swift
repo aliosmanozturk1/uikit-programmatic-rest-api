@@ -93,6 +93,7 @@ class RegisterViewController: UIViewController {
 
 }
 
+@available(iOS 17.0, *)
 #Preview {
     RegisterViewController()
 }

@@ -43,6 +43,7 @@ class MainViewController: UIViewController {
     }
 }
 
+@available(iOS 17.0, *)
 #Preview {
     MainViewController()
 }
