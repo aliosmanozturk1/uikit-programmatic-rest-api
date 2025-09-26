@@ -38,13 +38,17 @@ class LoginViewModel {
     }
     
     private func performLogin(email: String, password: String) {
-        // URL oluştur
-        guard let url = URL(string: "ENTER_YOUR_URL_HERE") else {
-            delegate?.didFailToLogin(with: "Geçersiz URL")
+        // Info.plist'ten API konfigürasyonlarını al
+        guard let apiURL = Bundle.main.infoDictionary?["API_URL"] as? String,
+              let url = URL(string: apiURL) else {
+            delegate?.didFailToLogin(with: "API URL bulunamadı")
             return
         }
         
-        let apiKey = "ENTER_YOUR_API_KEY_HERE"
+        guard let apiKey = Bundle.main.infoDictionary?["API_KEY"] as? String else {
+            delegate?.didFailToLogin(with: "API Key bulunamadı")
+            return
+        }
         
         // URLRequest oluştur
         var request = URLRequest(url: url)
