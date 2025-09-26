@@ -8,6 +8,8 @@
 import UIKit
 
 class LoginViewController: UIViewController {
+    private var viewModel: LoginViewModel!
+    
     private var emailTextField: UITextField!
     private var passwordTextField: UITextField!
     private var signInButton: UIButton!
@@ -19,6 +21,9 @@ class LoginViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        viewModel = LoginViewModel()
+        viewModel.delegate = self
 
         setupUI()
         setupConstraints()
@@ -128,129 +133,47 @@ class LoginViewController: UIViewController {
         navigationItem.title = "Login"
         navigationController?.navigationBar.isHidden = true
     }
-
+    
     @objc private func signInButtonTapped() {
-        // Email ve password kontrolü
-        guard let email = emailTextField.text, !email.isEmpty,
-              let password = passwordTextField.text, !password.isEmpty
-        else {
-            print("Email ve password boş olamaz")
-            return
+            viewModel.signInButtonTapped(email: emailTextField.text, password: passwordTextField.text)
         }
-
-        // URL oluştur
-        guard let url = URL(string: "ENTER_YOUR_URL_HERE") else {
-            print("Geçersiz URL")
-            return
-        }
-
-        let apiKey = "ENTER_YOUR_API_KEY_HERE"
-
-        // URLRequest oluştur
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-
-        // Headers ekle
-        request.setValue(apiKey, forHTTPHeaderField: "apikey")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // JSON body oluştur
-        // let bodyData: [String: Any] şeklinde de tanımlayabilirdik
-        let bodyData = [
-            "email": email,
-            "password": password
-        ]
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: bodyData, options: [])
-        } catch {
-            print("JSON oluşturma hatası: \(error)")
-            return
-        }
-
-        signInButton.isEnabled = false
-        signInButton.setTitle("Signing In...", for: .normal)
-
-        // Network isteği gönder
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
-
-            DispatchQueue.main.async {
-                self.signInButton.isEnabled = true
-                self.signInButton.setTitle("Sign In", for: .normal)
-            }
-
-            if let error = error {
-                print("Network Error: \(error.localizedDescription)")
-                return
-            }
-
-            // Response kontrolü
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("No response received from server.")
-                return
-            }
-
-            print("Status Code: \(httpResponse.statusCode)")
-
-            // Data kontrolü
-            guard let data = data else {
-                print("Server returned no data.")
-                return
-            }
-
-            // JSON parse et
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    print("Response: \(json)")
-
-                    // Başarılı login kontrolü
-                    if httpResponse.statusCode == 200 {
-                        if let accessToken = json["access_token"] as? String,
-                           let user = json["user"] as? [String: Any]
-                        {
-                            print("Login başarılı!")
-                            print("Access Token: \(accessToken)")
-                            print("User ID: \(user["id"] ?? "N/A")")
-
-                            DispatchQueue.main.async {
-                                // Text field'ları temizle
-                                self.emailTextField.text = ""
-                                self.passwordTextField.text = ""
-
-                                // MainViewController'a geç
-                                let mainVC = MainViewController()
-                                self.navigationController?.pushViewController(mainVC, animated: true)
-                            }
-                        }
-
-                    } else {
-                        // Hata mesajını göster
-                        if let message = json["msg"] as? String {
-                            print("Login hatası: \(message)")
-                        } else if let errorDescription = json["error_description"] as? String {
-                            print("Login hatası: \(errorDescription)")
-                        } else {
-                            print("Bilinmeyen login hatası")
-                        }
-                    }
-                }
-            } catch {
-                print("JSON parse hatası: \(error)")
-                // Raw response'u yazdır
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("Raw response: \(responseString)")
-                }
-            }
-        }
-
-        task.resume()
-    }
 
     @objc private func signUpButtonTapped() {
-        let registerVC = RegisterViewController()
-        navigationController?.pushViewController(registerVC, animated: true)
-    }
+            viewModel.signUpButtonTapped()
+        }
+    
+    private func showAlert(message: String) {
+            let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Okey", style: .default, handler: nil))
+            present(alert, animated: true)
+        }
+}
+
+extension LoginViewController: LoginViewModelDelegate {
+        func didUpdateLoginState(isLoading: Bool, buttonTitle: String) {
+            signInButton.isEnabled = !isLoading
+            signInButton.setTitle(buttonTitle, for: .normal)
+        }
+        
+        func didLoginSuccessfully() {
+            print("Login successful! Redirecting to Main View.")
+            emailTextField.text = ""
+            passwordTextField.text = ""
+            
+            let mainVC = MainViewController()
+            navigationController?.pushViewController(mainVC, animated: true)
+        }
+        
+        func didFailToLogin(with error: String) {
+            print("Login hatası: \(error)")
+            showAlert(message: error)
+        }
+        
+        func navigateToRegister() {
+            let registerVC = RegisterViewController()
+            navigationController?.pushViewController(registerVC, animated: true)
+        }
+    
 }
 
 @available(iOS 17.0, *)
