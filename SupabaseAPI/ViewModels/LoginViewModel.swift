@@ -5,6 +5,27 @@
 //  Created by Ali Osman Öztürk on 26.09.2025.
 //
 
+/*
+ MVVM - MainActor Design Pattern
+ 
+ Bu ViewModel @MainActor ile işaretlenmiştir çünkü:
+ 
+ 1. UI Thread Safety:
+    - Tüm delegate callbacks UI güncellemeleri tetikler
+    - UIKit işlemleri main thread'de olmalıdır
+    - @MainActor ile tüm metod ve property erişimleri otomatik main thread'de çalışır
+ 
+ 2. Kod Basitliği:
+    - Her delegate çağrısında "await MainActor.run {}" kullanmaya gerek yok
+    - Daha temiz, okunabilir kod
+    - Callback hell'den kaçınma
+ 
+ 3. Async/Await with URLSession:
+    - URLSession.shared.dataTask (closure) → URLSession.shared.data (async/await)
+    - Modern Swift concurrency pattern
+    - Structured concurrency ile better error handling
+ */
+
 import Foundation
 
 protocol LoginViewModelDelegate: AnyObject {
@@ -14,6 +35,7 @@ protocol LoginViewModelDelegate: AnyObject {
     func navigateToRegister()
 }
 
+@MainActor
 class LoginViewModel {
     // Delegate'i 'weak' olarak tanımlıyoruz ki 'Retain Cycle' (hafıza sızıntısı) oluşmasın.
     weak var delegate: LoginViewModelDelegate?
@@ -29,7 +51,9 @@ class LoginViewModel {
         }
         
         // 2. Network isteğini başlat.
-        performLogin(email: email, password: password)
+        Task {
+            await performLogin(email: email, password: password)
+        }
     }
     
     // View'dan gelen 'Sign Up' butonu tıklamasını yöneten fonksiyon.
@@ -37,7 +61,7 @@ class LoginViewModel {
         delegate?.navigateToRegister()
     }
     
-    private func performLogin(email: String, password: String) {
+    private func performLogin(email: String, password: String) async {
         // Info.plist'ten API konfigürasyonlarını al
         guard let apiURL = Bundle.main.infoDictionary?["API_URL"] as? String,
               let url = URL(string: apiURL) else {
@@ -69,37 +93,17 @@ class LoginViewModel {
         }
         
         // Network isteği başlamadan önce View'a durumu bildir.
-        DispatchQueue.main.async {
-            self.delegate?.didUpdateLoginState(isLoading: true, buttonTitle: "Signing In...")
-        }
+        delegate?.didUpdateLoginState(isLoading: true, buttonTitle: "Signing In...")
         
-        // Network isteği gönder
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
+        do {
+            // Network isteği gönder
+            let (data, response) = try await URLSession.shared.data(for: request)
             
             // İstek tamamlandığında View'a durumu bildir.
-            DispatchQueue.main.async {
-                self.delegate?.didUpdateLoginState(isLoading: false, buttonTitle: "Sign In")
-            }
-            
-            if let error = error {
-                DispatchQueue.main.async {
-                    self.delegate?.didFailToLogin(with: "Network Hatası: \(error.localizedDescription)")
-                }
-                return
-            }
+            delegate?.didUpdateLoginState(isLoading: false, buttonTitle: "Sign In")
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async {
-                    self.delegate?.didFailToLogin(with: "Sunucudan yanıt alınamadı.")
-                }
-                return
-            }
-            
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    self.delegate?.didFailToLogin(with: "Sunucudan veri gelmedi.")
-                }
+                delegate?.didFailToLogin(with: "Sunucudan yanıt alınamadı.")
                 return
             }
             
@@ -108,23 +112,19 @@ class LoginViewModel {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                     if httpResponse.statusCode == 200 {
                         // Başarılı
-                        DispatchQueue.main.async {
-                            self.delegate?.didLoginSuccessfully()
-                        }
+                        delegate?.didLoginSuccessfully()
                     } else {
                         // Başarısız
                         let errorMessage = json["msg"] as? String ?? json["error_description"] as? String ?? "Bilinmeyen bir hata oluştu."
-                        DispatchQueue.main.async {
-                            self.delegate?.didFailToLogin(with: errorMessage)
-                        }
+                        delegate?.didFailToLogin(with: errorMessage)
                     }
                 }
             } catch {
-                DispatchQueue.main.async {
-                    self.delegate?.didFailToLogin(with: "JSON parse hatası: \(error.localizedDescription)")
-                }
+                delegate?.didFailToLogin(with: "JSON parse hatası: \(error.localizedDescription)")
             }
+        } catch {
+            delegate?.didUpdateLoginState(isLoading: false, buttonTitle: "Sign In")
+            delegate?.didFailToLogin(with: "Network Hatası: \(error.localizedDescription)")
         }
-        task.resume()
     }
 }
