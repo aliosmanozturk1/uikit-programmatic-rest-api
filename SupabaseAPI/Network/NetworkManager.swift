@@ -25,8 +25,6 @@ protocol NetworkManagerProtocol {
 }
 
 final class NetworkManager: NetworkManagerProtocol {
-    static let shared = NetworkManager()
-
     func request<T: Decodable>(
         endpoint: String,
         method: String,
@@ -41,7 +39,7 @@ final class NetworkManager: NetworkManagerProtocol {
         } catch {
             throw NetworkError.decodingError(error)
         }
-     }
+    }
     
     func request(
         endpoint: String,
