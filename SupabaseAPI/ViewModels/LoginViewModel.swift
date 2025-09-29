@@ -37,15 +37,16 @@ class LoginViewModel {
         Task {
             delegate?.didUpdateLoginState(isLoading: true, buttonTitle: "Giriş yapılıyor...")
             
+            defer {
+                delegate?.didUpdateLoginState(isLoading: false, buttonTitle: "Giriş Yap")
+            }
+            
             do {
                 _ = try await authService.signIn(email: email, password: password)
-                delegate?.didUpdateLoginState(isLoading: false, buttonTitle: "Giriş Yap")
                 delegate?.didLoginSuccessfully()
             } catch let error as NetworkError {
-                delegate?.didUpdateLoginState(isLoading: false, buttonTitle: "Giriş Yap")
                 delegate?.didFailToLogin(with: error.localizedDescription)
             } catch {
-                delegate?.didUpdateLoginState(isLoading: false, buttonTitle: "Giriş Yap")
                 delegate?.didFailToLogin(with: "Beklenmedik bir hata oluştu: \(error.localizedDescription)")
             }
         }
