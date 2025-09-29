@@ -39,7 +39,7 @@ class LoginViewModel {
             delegate?.didUpdateLoginState(isLoading: true, buttonTitle: "Giriş yapılıyor...")
             
             do {
-                let response = try await authService.signIn(email: email, password: password)
+                _ = try await authService.signIn(email: email, password: password)
                 delegate?.didUpdateLoginState(isLoading: false, buttonTitle: "Giriş Yap")
                 delegate?.didLoginSuccessfully()
             } catch let error as NetworkError {
