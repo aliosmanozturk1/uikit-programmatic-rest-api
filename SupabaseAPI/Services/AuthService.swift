@@ -40,6 +40,6 @@ final class AuthService: AuthServiceProtocol {
             "Content-Type": "application/json"
         ]
         
-        return try await networkManager.request(endpoint: endpoint, method: method, headers: header, body: body, responseType: SignInResponse.self)
+        return try await networkManager.request(endpoint: endpoint, method: method, headers: header, body: body)
     }
 }

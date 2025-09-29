@@ -13,7 +13,6 @@ protocol NetworkManagerProtocol {
         method: String,
         headers: [String: String],
         body: [String: Any]?,
-        responseType: T.Type
     ) async throws -> T
     
     func request(
@@ -30,12 +29,11 @@ final class NetworkManager: NetworkManagerProtocol {
         method: String,
         headers: [String: String],
         body: [String: Any]?,
-        responseType: T.Type
     ) async throws -> T {
         let data = try await request(endpoint: endpoint, method: method, body: body, headers: headers)
         
         do {
-            return try JSONDecoder().decode(responseType.self, from: data)
+            return try JSONDecoder().decode(T.self, from: data)
         } catch {
             throw NetworkError.decodingError(error)
         }
