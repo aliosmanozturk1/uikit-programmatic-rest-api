@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct AppMetadata: Codable {
+struct AppMetadata: Decodable, Sendable {
     let provider: String
     let providers: [String]
 }
 
-struct UserMetadata: Codable {
+struct UserMetadata: Decodable, Sendable {
     let email: String
     let emailVerified: Bool
     let phoneVerified: Bool

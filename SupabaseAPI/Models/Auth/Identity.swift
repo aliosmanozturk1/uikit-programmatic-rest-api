@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Identity: Codable {
+struct Identity: Decodable, Sendable {
     let identityId: String
     let id: String
     let userId: String
@@ -29,7 +29,7 @@ struct Identity: Codable {
     }
 }
 
-struct IdentityData: Codable {
+struct IdentityData: Decodable, Sendable {
     let email: String
     let emailVerified: Bool
     let phoneVerified: Bool

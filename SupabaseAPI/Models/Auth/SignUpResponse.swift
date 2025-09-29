@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct SignUpResponse: Codable {
+struct SignUpResponse: Decodable, Sendable {
     let id: String
     let aud: String
     let role: String

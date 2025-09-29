@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct SignInResponse: Codable {
+struct SignInResponse: Decodable, Sendable {
     let accessToken: String
     let tokenType: String
     let expiresIn: Int
