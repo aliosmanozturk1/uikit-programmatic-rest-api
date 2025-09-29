@@ -14,7 +14,6 @@ protocol LoginViewModelDelegate: AnyObject {
     func navigateToRegister()
 }
 
-@MainActor
 class LoginViewModel {
     // Delegate'i 'weak' olarak tanımlıyoruz ki 'Retain Cycle' (hafıza sızıntısı) oluşmasın.
     weak var delegate: LoginViewModelDelegate?
