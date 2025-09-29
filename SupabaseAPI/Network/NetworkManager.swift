@@ -8,7 +8,7 @@
 import Foundation
 
 protocol NetworkManagerProtocol {
-    func request<T: Decodable>(
+    func request<T: Decodable & Sendable>(
         endpoint: String,
         method: String,
         headers: [String: String],
@@ -25,7 +25,7 @@ protocol NetworkManagerProtocol {
 }
 
 final class NetworkManager: NetworkManagerProtocol {
-    func request<T: Decodable>(
+    func request<T: Decodable & Sendable>(
         endpoint: String,
         method: String,
         headers: [String: String],
