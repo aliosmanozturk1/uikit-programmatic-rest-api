@@ -8,7 +8,8 @@
 import UIKit
 
 class RegisterViewController: UIViewController {
-
+    private var viewModel: RegisterViewModel!
+    
     private var emailTextField: UITextField!
     private var passwordTextField: UITextField!
     private var signUpButton: UIButton!
@@ -17,6 +18,9 @@ class RegisterViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        viewModel = RegisterViewModel()
+        viewModel.delegate = self
         
         setupUI()
         setupConstraints()
@@ -88,9 +92,32 @@ class RegisterViewController: UIViewController {
     }
     
     @objc private func signUpButtonTapped() {
-        
+        viewModel.signUpButtonTapped(email: emailTextField.text, password: passwordTextField.text)
     }
+    
+    private func showAlert(message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Okey", style: .default, handler: nil))
+        present(alert, animated: true)
+    }
+}
 
+extension RegisterViewController: RegisterViewModelDelegate {
+    func didUpdateLoginState(isLoading: Bool, buttonTitle: String) {
+        signUpButton.isEnabled = !isLoading
+        signUpButton.setTitle(buttonTitle, for: .normal)
+    }
+        
+    func didRegisterSuccessfully() {
+        print("Register successful!")
+        emailTextField.text = ""
+        passwordTextField.text = ""
+    }
+        
+    func didFailToLogin(with error: String) {
+        print("Login hatası: \(error)")
+        showAlert(message: error)
+    }
 }
 
 @available(iOS 17.0, *)
