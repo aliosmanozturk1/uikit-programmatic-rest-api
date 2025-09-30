@@ -10,14 +10,14 @@ import Foundation
 protocol NetworkManagerProtocol {
     func request<T: Decodable>(
         endpoint: String,
-        method: String,
+        method: HTTPMethod,
         headers: [String: String],
         body: [String: Any]?,
     ) async throws -> T
     
     func request(
         endpoint: String,
-        method: String,
+        method: HTTPMethod,
         body: [String: Any]?,
         headers: [String: String]?
     ) async throws -> Data
@@ -26,7 +26,7 @@ protocol NetworkManagerProtocol {
 final class NetworkManager: NetworkManagerProtocol {
     func request<T: Decodable>(
         endpoint: String,
-        method: String,
+        method: HTTPMethod,
         headers: [String: String],
         body: [String: Any]?,
     ) async throws -> T {
@@ -41,7 +41,7 @@ final class NetworkManager: NetworkManagerProtocol {
     
     func request(
         endpoint: String,
-        method: String,
+        method: HTTPMethod,
         body: [String: Any]?,
         headers: [String: String]?
     ) async throws -> Data {
@@ -52,7 +52,7 @@ final class NetworkManager: NetworkManagerProtocol {
         
         // Create Request
         var request = URLRequest(url: url)
-        request.httpMethod = method
+        request.httpMethod = method.rawValue
         
         // Add custom headers
         headers?.forEach { key, value in
