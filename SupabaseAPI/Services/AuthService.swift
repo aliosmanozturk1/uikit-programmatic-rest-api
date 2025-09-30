@@ -29,8 +29,8 @@ final class AuthService: AuthServiceProtocol {
         ]
         
         let header = [
-            "apikey": apiConfig.apiKey,
-            "Content-Type": "application/json"
+            HTTPHeaderKey.apiKey.rawValue: apiConfig.apiKey,
+            HTTPHeaderKey.contentType.rawValue: HTTPHeaderValue.applicationJSON
         ]
         
         return try await networkManager.request(endpoint: endpoint, method: .post, headers: header, body: body)
