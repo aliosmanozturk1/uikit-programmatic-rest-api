@@ -9,6 +9,7 @@ import Foundation
 
 protocol AuthServiceProtocol {
     func signIn(email: String, password: String) async throws -> SignInResponse
+    func signUp(email: String, password: String) async throws -> SignUpResponse
 }
 
 final class AuthService: AuthServiceProtocol {
@@ -36,5 +37,19 @@ final class AuthService: AuthServiceProtocol {
         return try await networkManager.request(endpoint: endpoint, method: .post, headers: header, body: body)
     }
     
-    
+    func signUp(email: String, password: String) async throws -> SignUpResponse {
+        let endpoint = apiConfig.baseURL + "/auth/v1/signup"
+        
+        let body = [
+            "email": email,
+            "password": password
+        ]
+        
+        let header = [
+            HTTPHeaderKey.apiKey.rawValue: apiConfig.apiKey,
+            HTTPHeaderKey.contentType.rawValue: HTTPHeaderValue.applicationJSON
+        ]
+        
+        return try await networkManager.request(endpoint: endpoint, method: .post, headers: header, body: body)
+    }
 }
