@@ -13,22 +13,15 @@ protocol AuthServiceProtocol {
 
 final class AuthService: AuthServiceProtocol {
     private let networkManager: NetworkManagerProtocol
+    private let apiConfig: APIConfig
     
-    init(networkManager: NetworkManagerProtocol = NetworkManager()) {
+    init(networkManager: NetworkManagerProtocol = NetworkManager(), apiConfig: APIConfig = APIConfig()) {
         self.networkManager = networkManager
+        self.apiConfig = apiConfig
     }
     
     func signIn(email: String, password: String) async throws -> SignInResponse {
-        guard let baseURL = Bundle.main.infoDictionary?["API_URL"] as? String else {
-            fatalError("API_URL not found in Info.plist")
-        }
-        
-        guard let apiKey = Bundle.main.infoDictionary?["API_KEY"] as? String else {
-            fatalError("API_KEY not found in Info.plist")
-        }
-        
-        let endpoint = baseURL + "/auth/v1/token?grant_type=password"
-        let method = "POST"
+        let endpoint = apiConfig.baseURL + "/auth/v1/token?grant_type=password"
         
         let body = [
             "email": email,
@@ -36,10 +29,12 @@ final class AuthService: AuthServiceProtocol {
         ]
         
         let header = [
-            "apikey": apiKey,
+            "apikey": apiConfig.apiKey,
             "Content-Type": "application/json"
         ]
         
-        return try await networkManager.request(endpoint: endpoint, method: method, headers: header, body: body)
+        return try await networkManager.request(endpoint: endpoint, method: .post, headers: header, body: body)
     }
+    
+    
 }
