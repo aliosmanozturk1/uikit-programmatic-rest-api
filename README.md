@@ -1,20 +1,24 @@
-# 🚀 Rest API - Supabase - MVVM Architecture Showcase
+# 📘 UIKit Programmatic REST API Examples
 
-This project shows 4 different MVVM approaches in iOS Development.
+This repository demonstrates how to perform REST API requests in a UIKit project using **programmatic UI**.
 
-## 🌟 Branches
+---
 
-| Branch | Pattern | Description |
-|--------|---------|-------------|
-| `mvvm-closure-based` | **Closure** | Traditional callback-based MVVM with completion handlers. |
-| `mvvm-delegate-pattern` | **Delegate** | Protocol-oriented MVVM using delegate pattern. |
-| `mvvm-rxswift` | **RxSwift** | Reactive Programming |
-| `mvvm-combine` | **Combine** | Apple's Reactive Framework |
+## 🌿 Branches
 
-## 🛠 Technologies
+| Branch | Description |
+|---------|--------------|
+| [`with-urlsession`](https://github.com/aliosmanozturk1/uikit-programmatic-rest-api/tree/with-urlsession) | Example using **URLSession** |
+| [`with-alamofire`](https://github.com/aliosmanozturk1/uikit-programmatic-rest-api/tree/with-alamofire) | Example using **Alamofire** |
 
-- **UIKit** (Programmatic UI)
-- **Supabase** (REST API)
-- **MVVM** Pattern
-- **RxSwift** & **Combine**
-- **URLSession** (Networking)
+---
+
+> ⚠️ **Note:** The code in the `main` branch is **not up to date**.  
+> Please check the related branch to see the working example.
+
+---
+
+### 🛠 Built With
+- Swift  
+- UIKit  
+- Xcode  
