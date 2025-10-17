@@ -17,16 +17,6 @@ struct Identity: Decodable, Sendable {
     let createdAt: String
     let updatedAt: String
     let email: String
-    
-    enum CodingKeys: String, CodingKey {
-        case id, provider, email
-        case identityId = "identity_id"
-        case userId = "user_id"
-        case identityData = "identity_data"
-        case lastSignInAt = "last_sign_in_at"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-    }
 }
 
 struct IdentityData: Decodable, Sendable {
@@ -34,10 +24,4 @@ struct IdentityData: Decodable, Sendable {
     let emailVerified: Bool
     let phoneVerified: Bool
     let sub: String
-    
-    enum CodingKeys: String, CodingKey {
-        case email, sub
-        case emailVerified = "email_verified"
-        case phoneVerified = "phone_verified"
-    }
 }

@@ -17,10 +17,4 @@ struct UserMetadata: Decodable, Sendable {
     let emailVerified: Bool
     let phoneVerified: Bool
     let sub: String
-    
-    enum CodingKeys: String, CodingKey {
-        case email, sub
-        case emailVerified = "email_verified"
-        case phoneVerified = "phone_verified"
-    }
 }

@@ -21,15 +21,4 @@ struct SignUpResponse: Decodable, Sendable {
     let createdAt: String
     let updatedAt: String
     let isAnonymous: Bool
-
-    enum CodingKeys: String, CodingKey {
-        case id, aud, role, email, phone
-        case confirmationSentAt = "confirmation_sent_at"
-        case appMetadata = "app_metadata"
-        case userMetadata = "user_metadata"
-        case identities
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-        case isAnonymous = "is_anonymous"
-    }
 }
