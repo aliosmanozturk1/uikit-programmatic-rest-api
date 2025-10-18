@@ -6,120 +6,63 @@
 //
 
 import Foundation
+import Alamofire
 
 protocol NetworkManagerProtocol {
-    func request<T: Decodable>(
-        endpoint: String,
-        method: HTTPMethod,
-        headers: [String: String],
-        body: [String: Any]?,
-    ) async throws -> T
-    
-    func request(
-        endpoint: String,
-        method: HTTPMethod,
-        body: [String: Any]?,
-        headers: [String: String]?
-    ) async throws -> Data
+    func request<T: Decodable>(_ endpoint: APIEndpoint) async throws -> T
+    func request(_ endpoint: APIEndpoint) async throws -> Data
 }
 
 final class NetworkManager: NetworkManagerProtocol {
-    func request<T: Decodable>(
-        endpoint: String,
-        method: HTTPMethod,
-        headers: [String: String],
-        body: [String: Any]?,
-    ) async throws -> T {
-        let data = try await request(endpoint: endpoint, method: method, body: body, headers: headers)
+    static let shared = NetworkManager()
+    
+    private let session: Session
+    private let decoder: JSONDecoder
+    
+    private init() {
+        // Custom configuration
+        let configuration = URLSessionConfiguration.af.default
+        configuration.timeoutIntervalForRequest = 30
+        configuration.timeoutIntervalForResource = 30
+
+        self.session = Session(
+            configuration: configuration
+        )
         
+        // Configure decoder
+        self.decoder = JSONDecoder()
+        self.decoder.keyDecodingStrategy = .convertFromSnakeCase
+        self.decoder.dateDecodingStrategy = .iso8601
+    }
+    
+    // MARK: - Base Request (Returns Raw Data)
+    func request(_ endpoint: APIEndpoint) async throws -> Data {
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            return try await session
+                .request(endpoint)
+                .validate()
+                .serializingData()
+                .value
+        } catch let afError as AFError {
+            throw AppError.network(afError)
         } catch {
-            throw NetworkError.decodingError(error)
+            throw AppError.unknown(error)
         }
     }
     
-    func request(
-        endpoint: String,
-        method: HTTPMethod,
-        body: [String: Any]?,
-        headers: [String: String]?
-    ) async throws -> Data {
-        // Create URL
-        guard let url = URL(string: endpoint) else {
-            fatalError("Invalid URL")
-        }
-        
-        // Create Request
-        var request = URLRequest(url: url)
-        request.httpMethod = method.rawValue
-        
-        // Add custom headers
-        headers?.forEach { key, value in
-            request.setValue(value, forHTTPHeaderField: key)
-        }
-        
-        // Add body if provided
-        if let body = body {
-            do {
-                request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            } catch {
-                throw NetworkError.encodingError(error)
-            }
-        }
-        
-        // Perform request
+    // MARK: - Generic Request (Decodes Data)
+    func request<T: Decodable>(_ endpoint: APIEndpoint) async throws -> T {
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw NetworkError.unknown("Invalid Response Type")
-            }
-            
-            switch httpResponse.statusCode {
-            case 200...299:
-                return data
-            case 401:
-                throw NetworkError.unauthorized
-            case 400...499:
-                let errorMessage = parseErrorMessage(from: data)
-                throw NetworkError.httpError(statusCode: httpResponse.statusCode, message: errorMessage)
-            case 500...599:
-                throw NetworkError.serverError
-            default:
-                throw NetworkError.httpError(statusCode: httpResponse.statusCode, message: nil)
-            }
-    
-        } catch let error as NetworkError {
-            throw error
+            return try await session
+                .request(endpoint)
+                .validate()
+                .serializingDecodable(T.self, decoder: decoder)
+                .value
+        } catch let afError as AFError {
+            throw AppError.network(afError)
         } catch {
-            throw NetworkError.networkError(error)
+            throw AppError.unknown(error)
         }
-    }
-    
-    private func parseErrorMessage(from data: Data) -> String? {
-        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-            return nil
-        }
-        
-        // Try common error message keys
-        if let message = json["msg"] as? String {
-            return message
-        }
-        
-        if let message = json["error_description"] as? String {
-            return message
-        }
-        
-        if let message = json["message"] as? String {
-            return message
-        }
-        
-        if let error = json["error"] as? String {
-            return error
-        }
-        
-        return nil
     }
 }
-    
+
