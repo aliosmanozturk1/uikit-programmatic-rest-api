@@ -16,9 +16,11 @@ protocol APIEndpoint: URLRequestConvertible {
     var parameters: Parameters? { get }
     var queryParameters: Parameters? { get }
     var encoding: ParameterEncoding { get }
+    var requiresAuth: Bool { get }
 }
 
 extension APIEndpoint {
+    var requiresAuth: Bool { true }
     var queryParameters: Parameters? { nil }
     
     func asURLRequest() throws -> URLRequest {
@@ -39,6 +41,12 @@ extension APIEndpoint {
         
         if let headers = headers {
             request.headers = headers
+        }
+        
+        if requiresAuth {
+            if let token = SessionManager.shared.getAccessToken() {
+                request.headers.add(.authorization(bearerToken: token))
+            }
         }
         
         return try encoding.encode(request, with: parameters)

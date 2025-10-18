@@ -12,7 +12,7 @@ enum AuthEndpoint: APIEndpoint {
     case signIn(email: String, password: String)
     case signUp(email: String, password: String)
     case refreshSession(refreshToken: String)
-    case currentUser(accessToken: String)
+    case currentUser
     case resendVerification(email: String)
     
     var baseURL: String {
@@ -47,12 +47,7 @@ enum AuthEndpoint: APIEndpoint {
             .init(name: "apikey", value: APIConfig.shared.apiKey)
         ]
         
-        switch self {
-        case .currentUser(let accessToken):
-            headers.add(.authorization(bearerToken: accessToken))
-        default:
-            break
-        }
+
         
         return headers
     }
@@ -100,6 +95,15 @@ enum AuthEndpoint: APIEndpoint {
             return URLEncoding.default
         default:
             return JSONEncoding.default
+        }
+    }
+    
+    var requiresAuth: Bool {
+        switch self {
+        case .signIn, .signUp, .refreshSession:
+            return false
+        default:
+            return true
         }
     }
 }
